@@ -1,0 +1,7 @@
+Alwida,65
+Joko,44
+Budi,12
+Siti,50
+Rina,44
+Andi,8
+Citra,34
