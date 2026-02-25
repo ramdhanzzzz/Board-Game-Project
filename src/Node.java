@@ -1,7 +1,7 @@
 public class Node {
     int id;
     Node next;
-    Node shortcut; // Pointer untuk Tangga
+    Node shortcut; 
 
     public Node(int id) {
         this.id = id;
