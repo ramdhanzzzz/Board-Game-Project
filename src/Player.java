@@ -5,14 +5,14 @@ public class Player {
     private Node currentPosition;
     private Color color;
     private int lastPositionId;
-    private int score; // VARIABLE BARU: SKOR
+    private int score; 
 
     public Player(String name, Node startNode, Color color) {
         this.name = name;
         this.currentPosition = startNode;
         this.color = color;
         this.lastPositionId = startNode.id;
-        this.score = 0; // Skor awal 0
+        this.score = 0; 
     }
 
     public String getName() { return name; }
@@ -22,7 +22,6 @@ public class Player {
     public int getLastPositionId() { return lastPositionId; }
     public void setLastPositionId(int id) { this.lastPositionId = id; }
 
-    // --- METHOD BARU UNTUK SKOR ---
     public int getScore() { return score; }
 
     public void addScore(int points) {
