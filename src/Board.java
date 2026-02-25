@@ -9,13 +9,12 @@ public class Board {
     private Node tail;
     public final int TOTAL_SQUARES = 64;
 
-    // VARIABLE BARU: Peta lokasi poin (ID Kotak -> Jumlah Poin)
     private Map<Integer, Integer> pointBoxes;
 
     public Board() {
         initializeBoard();
         generateLadders();
-        generateRandomPoints(); // Generate Poin
+        generateRandomPoints();
     }
 
     private void initializeBoard() {
@@ -53,20 +52,14 @@ public class Board {
         }
     }
 
-    // --- LOGIKA UPDATE: GENERATE 20 KOTAK BERPOIN ---
     private void generateRandomPoints() {
         pointBoxes = new HashMap<>();
         Random rand = new Random();
         int count = 0;
 
-        // Ubah batas loop menjadi 20
         while (count < 20) {
-            // Random kotak 2 sampai 64
             int id = rand.nextInt(TOTAL_SQUARES - 1) + 2;
-
-            // Pastikan kotak belum ada poinnya
             if (!pointBoxes.containsKey(id)) {
-                // Random poin 1 - 10
                 int points = rand.nextInt(10) + 1;
                 pointBoxes.put(id, points);
                 count++;
@@ -75,12 +68,10 @@ public class Board {
         System.out.println("Points Generated: " + pointBoxes);
     }
 
-    // Cek apakah kotak ini punya poin
     public int getPointsAt(int id) {
         return pointBoxes.getOrDefault(id, 0);
     }
-
-    // --- METHOD BARU: HAPUS POIN SETELAH DIAMBIL ---
+-
     public void removePoints(int id) {
         if (pointBoxes.containsKey(id)) {
             pointBoxes.remove(id);
