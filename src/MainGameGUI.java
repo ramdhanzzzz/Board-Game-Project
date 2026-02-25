@@ -29,17 +29,14 @@ public class MainGameGUI extends JFrame {
     private ControlPanel controlPanel;
     private boolean isGameRunning = false;
 
-    // Timer Animasi
     private Timer diceAnimationTimer;
     private Timer movementAnimationTimer;
     private Timer ladderAnimationTimer;
     private Timer lockAnimationTimer;
 
-    // Timer Animasi Confetti
     private Timer confettiTimer;
     private List<ConfettiParticle> confettiParticles = new ArrayList<>();
 
-    // Variabel Animasi Player
     private Player animatingPlayer = null;
     private Point2D.Double currentAnimPos = null;
     private Point2D.Double targetAnimPos = null;
@@ -47,21 +44,18 @@ public class MainGameGUI extends JFrame {
     private boolean isFacingRight = true;
     private boolean currentTurnIsForward = true;
 
-    // State Gembok
     private int activeLockNodeId = -1;
     private double lockAngle = 0;
     private boolean isLockOpen = false;
     private boolean isLockShaking = false;
     private int shakeFrame = 0;
 
-    // Audio
     private Clip bgmClip;
     private Clip sfxClip;
     private Clip walkClip;
     private Clip winClip;
     private boolean isSFXMuted = false;
 
-    // --- PALET WARNA LEGO/MARIO ---
     public static final Color MARIO_SKY_BLUE   = new Color(107, 140, 255);
     public static final Color MARIO_RED        = new Color(229, 37, 33);
     public static final Color MARIO_BLUE       = new Color(0, 0, 200);
@@ -76,7 +70,6 @@ public class MainGameGUI extends JFrame {
     public static final Color LADDER_LIGHT     = new Color(255, 223, 0);
     public static final Color LADDER_SHINE     = new Color(255, 250, 205);
 
-    // File Penyimpanan
     private static final String SAVE_FILE = "last_winner.txt";
 
     public MainGameGUI() {
@@ -110,11 +103,10 @@ public class MainGameGUI extends JFrame {
         });
     }
 
-    // --- HELPER CLASS UNTUK MENYIMPAN DATA (UPDATED) ---
     static class WinnerRecord {
         String name;
         int score;
-        long entryOrder; // Variable baru untuk menyimpan urutan baris/waktu
+        long entryOrder;
 
         public WinnerRecord(String name, int score, long entryOrder) {
             this.name = name;
@@ -122,36 +114,28 @@ public class MainGameGUI extends JFrame {
             this.entryOrder = entryOrder;
         }
     }
-    // --- LOGIKA LOAD & SAVE (MODIFIED) ---
 
-    // --- LOGIKA LOAD & SAVE (UPDATED WITH TIE-BREAKER) ---
 
-    // Membaca file, mengambil SEMUA data, Sorting, ambil Top 5
     private List<WinnerRecord> loadTopWinners() {
         List<WinnerRecord> allWinners = new ArrayList<>();
         File f = new File(SAVE_FILE);
 
-        // Counter untuk melacak urutan baris.
-        // Semakin besar angkanya = semakin bawah posisinya di file = semakin baru datanya.
         long lineCounter = 0;
 
         if (f.exists()) {
             try (Scanner scanner = new Scanner(f)) {
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
-                    lineCounter++; // Naikkan counter setiap membaca baris
+                    lineCounter++;
 
-                    // Format di file: Nama,Skor
                     String[] parts = line.split(",");
                     if (parts.length == 2) {
                         try {
                             String name = parts[0].trim();
                             int score = Integer.parseInt(parts[1].trim());
 
-                            // Masukkan lineCounter ke dalam record sebagai entryOrder
                             allWinners.add(new WinnerRecord(name, score, lineCounter));
                         } catch (NumberFormatException e) {
-                            // Skip baris rusak
                         }
                     }
                 }
@@ -160,22 +144,17 @@ public class MainGameGUI extends JFrame {
             }
         }
 
-        // LOGIKA SORTING BARU
         Collections.sort(allWinners, new Comparator<WinnerRecord>() {
             @Override
             public int compare(WinnerRecord w1, WinnerRecord w2) {
-                // 1. Prioritas Utama: Bandingkan Skor (Descending / Besar ke Kecil)
                 if (w1.score != w2.score) {
                     return w2.score - w1.score;
                 }
 
-                // 2. Prioritas Kedua (Tie-Breaker): Bandingkan Urutan Masuk
-                // Jika Skor SAMA, yang punya entryOrder lebih besar (lebih baru) menang.
                 return Long.compare(w2.entryOrder, w1.entryOrder);
             }
         });
 
-        // Ambil Top 5 (atau kurang jika data sedikit)
         List<WinnerRecord> top5 = new ArrayList<>();
         for (int i = 0; i < Math.min(5, allWinners.size()); i++) {
             top5.add(allWinners.get(i));
@@ -184,9 +163,8 @@ public class MainGameGUI extends JFrame {
         return top5;
     }
 
-    // Menyimpan pemenang baru ke file (Append Mode)
     public void appendWinnerToFile(String name, int score) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE, true))) { // true = append
+        try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE, true))) {
             writer.println(name + "," + score);
         } catch (IOException e) {
             e.printStackTrace();
@@ -594,24 +572,19 @@ public class MainGameGUI extends JFrame {
         controlPanel.btnRoll.setEnabled(true);
     }
 
-    // --- LOGIKA GAME END: SIMPAN & UPDATE HALL OF FAME ---
     private void handleGameEnd(Player finishingPlayer) {
         stopMusic();
         playWinSound();
         startConfetti();
 
-        // 1. Tentukan Pemenang Berdasarkan Skor
         List<Player> allPlayers = new ArrayList<>(turnQueue);
         Collections.sort(allPlayers, (p1, p2) -> p2.getScore() - p1.getScore());
         Player trueWinner = allPlayers.get(0);
 
-        // 2. Simpan ke File (Append Mode)
         appendWinnerToFile(trueWinner.getName(), trueWinner.getScore());
 
-        // 3. Update UI Hall of Fame (Reload dari file yang baru diupdate)
         controlPanel.refreshHallOfFame();
 
-        // --- TAMPILAN JENDELA MENANG ---
         JPanel winPanel = new JPanel();
         winPanel.setLayout(new BoxLayout(winPanel, BoxLayout.Y_AXIS));
         winPanel.setBackground(new Color(255, 255, 220));
@@ -731,7 +704,6 @@ public class MainGameGUI extends JFrame {
         }
     }
 
-    // --- VISUAL BOARD ---
     class GamePanel extends JPanel {
         public Point getCoordinates(int id) {
             int cols = 8; int rows = 8;
@@ -750,7 +722,6 @@ public class MainGameGUI extends JFrame {
             int cols = 8, rows = 8;
             int w = getWidth() / cols; int h = getHeight() / rows;
 
-            // 1. Render Blocks
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < cols; c++) {
                     int x = c * w; int y = r * h;
@@ -761,7 +732,6 @@ public class MainGameGUI extends JFrame {
                 }
             }
 
-            // 2. Tangga & Gembok
             for (int i = 1; i <= 64; i++) {
                 Node n = gameBoard.getNodeById(i);
                 if (n != null && n.shortcut != null) {
@@ -786,7 +756,6 @@ public class MainGameGUI extends JFrame {
                 }
             }
 
-            // 3. Pemain
             if (turnQueue != null) {
                 Map<Integer, List<Player>> playersOnNode = new HashMap<>();
                 for (Player p : turnQueue) {
@@ -816,7 +785,6 @@ public class MainGameGUI extends JFrame {
                 }
             }
 
-            // 4. Render Confetti
             if (!confettiParticles.isEmpty()) {
                 for (ConfettiParticle p : confettiParticles) {
                     g2.setColor(p.color);
@@ -829,7 +797,6 @@ public class MainGameGUI extends JFrame {
             }
         }
 
-        // --- DRAWING HELPERS ---
 
         private void drawLegoBlock(Graphics2D g, int x, int y, int w, int h, int id) {
             g.setColor(MARIO_BROWN);
@@ -857,7 +824,6 @@ public class MainGameGUI extends JFrame {
 
             g.setFont(new Font("Segoe UI Black", Font.PLAIN, 14));
             g.setColor(Color.WHITE);
-            // Angka di Kiri Atas
             g.drawString(String.valueOf(id), x + 5, y + 20);
 
             if (gameBoard.isPrime(id)) {
@@ -896,7 +862,6 @@ public class MainGameGUI extends JFrame {
             g.drawString(s, cx - fm.stringWidth(s)/2, cy + fm.getAscent()/2 - 1);
         }
 
-        // Visibility changed to package-private so Win Panel can access it
         void drawMarioChar(Graphics2D g, Player p, int cx, int cy) {
             int scale = 3;
             Color outfitColor = p.getColor();
@@ -936,7 +901,6 @@ public class MainGameGUI extends JFrame {
             g.setTransform(old);
         }
 
-        // --- TANGGA GOLD (GRADIENT) ---
         private void drawPremiumLadder(Graphics2D g, int x1, int y1, int x2, int y2) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1058,13 +1022,11 @@ public class MainGameGUI extends JFrame {
         }
     }
 
-    // --- PANEL CONTROL ---
     class ControlPanel extends JPanel {
         JLabel lblCurrentName, lblNextName, lblStatus;
         JPanel pnlPlayerList; JTextArea txtLog;
-        JPanel pnlLeaderboard; // New Leaderboard Panel
+        JPanel pnlLeaderboard;
 
-        // --- GANTI LAST CHAMPION MENJADI HALL OF FAME ---
         JPanel pnlHallOfFameDisplay;
 
         MarioButton btnStart, btnRoll; JPanel dicePanel;
@@ -1085,7 +1047,6 @@ public class MainGameGUI extends JFrame {
             title.setAlignmentX(Component.CENTER_ALIGNMENT);
             add(title); add(Box.createVerticalStrut(10));
 
-            // --- SECTION HALL OF FAME (PERSISTENT DATA) ---
             JLabel lblChamp = createLabel("HALL OF FAME (Top 5):");
             lblChamp.setForeground(Color.YELLOW);
             add(lblChamp);
@@ -1096,15 +1057,13 @@ public class MainGameGUI extends JFrame {
             pnlHallOfFameDisplay.setBorder(new LineBorder(Color.YELLOW, 2));
 
             JScrollPane scrollHoF = new JScrollPane(pnlHallOfFameDisplay);
-            scrollHoF.setPreferredSize(new Dimension(280, 100)); // Cukup untuk 5 baris
+            scrollHoF.setPreferredSize(new Dimension(280, 100));
             scrollHoF.setBorder(null);
 
             add(scrollHoF);
             add(Box.createVerticalStrut(15));
 
-            // Initial Load
             refreshHallOfFame();
-            // ----------------------------------------------
 
             add(createLabel("MUSIC VOL:"));
             JPanel pnlSlider = new JPanel(new BorderLayout());
@@ -1141,7 +1100,6 @@ public class MainGameGUI extends JFrame {
 
             add(createLabel("CURRENT GAME:"));
 
-            // --- Custom Leaderboard Panel (Current Game) ---
             pnlLeaderboard = new JPanel();
             pnlLeaderboard.setLayout(new BoxLayout(pnlLeaderboard, BoxLayout.Y_AXIS));
             pnlLeaderboard.setBackground(new Color(240, 240, 255));
@@ -1224,14 +1182,11 @@ public class MainGameGUI extends JFrame {
 
         public void updatePlayerList(Queue<Player> players) {}
 
-        // --- METHOD REFRESH HALL OF FAME UI ---
         public void refreshHallOfFame() {
             pnlHallOfFameDisplay.removeAll();
 
-            // 1. Load & Sort (sudah dihandle di loadTopWinners)
             List<WinnerRecord> top5 = loadTopWinners();
 
-            // 2. Tampilkan di UI
             if (top5.isEmpty()) {
                 JLabel lblEmpty = new JLabel("No Records Yet");
                 lblEmpty.setForeground(Color.WHITE);
@@ -1264,7 +1219,6 @@ public class MainGameGUI extends JFrame {
             pnlHallOfFameDisplay.repaint();
         }
 
-        // --- CUSTOM LEADERBOARD UPDATE (CURRENT GAME) ---
         public void updateScoreboard(Queue<Player> players) {
             pnlLeaderboard.removeAll();
 
